@@ -1,0 +1,16 @@
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - core5g
+
+volumes:
+  mongo_data:
+
+networks:
+  core5g:
+    driver: bridge
