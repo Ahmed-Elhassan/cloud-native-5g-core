@@ -8,6 +8,16 @@ services:
     networks:
       - core5g
 
+  nrf:
+    image: gradiant/open5gs:2.6.4
+    container_name: nrf
+    restart: unless-stopped
+    command: ["open5gs-nrfd", "-c", "/etc/open5gs/custom/nrf.yaml"]
+    volumes:
+      - ./config/nrf.yaml:/etc/open5gs/custom/nrf.yaml:ro
+    networks:
+      - core5g
+
 volumes:
   mongo_data:
 
