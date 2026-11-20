@@ -1,6 +1,15 @@
+# Open5GS 5G Core - تصميم تعليمي (قيد التجربة)
+# الملف لم يُختبر بالكامل؛ راجع README لحالة كل خدمة.
+
+x-open5gs: &open5gs
+  image: gradiant/open5gs:2.6.4
+  restart: unless-stopped
+  networks:
+    - core5g
+
 services:
   mongodb:
-    image: mongo:6.0
+    image: mongo:4.4
     container_name: mongodb
     restart: unless-stopped
     volumes:
@@ -9,14 +18,75 @@ services:
       - core5g
 
   nrf:
-    image: gradiant/open5gs:2.6.4
+    <<: *open5gs
     container_name: nrf
-    restart: unless-stopped
     command: ["open5gs-nrfd", "-c", "/etc/open5gs/custom/nrf.yaml"]
     volumes:
       - ./config/nrf.yaml:/etc/open5gs/custom/nrf.yaml:ro
-    networks:
-      - core5g
+
+  udr:
+    <<: *open5gs
+    container_name: udr
+    command: ["open5gs-udrd", "-c", "/etc/open5gs/custom/udr.yaml"]
+    environment:
+      - DB_URI=mongodb://mongodb/open5gs
+    volumes:
+      - ./config/udr.yaml:/etc/open5gs/custom/udr.yaml:ro
+    depends_on: [mongodb, nrf]
+
+  udm:
+    <<: *open5gs
+    container_name: udm
+    command: ["open5gs-udmd", "-c", "/etc/open5gs/custom/udm.yaml"]
+    volumes:
+      - ./config/udm.yaml:/etc/open5gs/custom/udm.yaml:ro
+    depends_on: [nrf, udr]
+
+  ausf:
+    <<: *open5gs
+    container_name: ausf
+    command: ["open5gs-ausfd", "-c", "/etc/open5gs/custom/ausf.yaml"]
+    volumes:
+      - ./config/ausf.yaml:/etc/open5gs/custom/ausf.yaml:ro
+    depends_on: [nrf, udm]
+
+  pcf:
+    <<: *open5gs
+    container_name: pcf
+    command: ["open5gs-pcfd", "-c", "/etc/open5gs/custom/pcf.yaml"]
+    environment:
+      - DB_URI=mongodb://mongodb/open5gs
+    volumes:
+      - ./config/pcf.yaml:/etc/open5gs/custom/pcf.yaml:ro
+    depends_on: [nrf, mongodb]
+
+  amf:
+    <<: *open5gs
+    container_name: amf
+    command: ["open5gs-amfd", "-c", "/etc/open5gs/custom/amf.yaml"]
+    volumes:
+      - ./config/amf.yaml:/etc/open5gs/custom/amf.yaml:ro
+    depends_on: [nrf, ausf]
+
+  smf:
+    <<: *open5gs
+    container_name: smf
+    command: ["open5gs-smfd", "-c", "/etc/open5gs/custom/smf.yaml"]
+    volumes:
+      - ./config/smf.yaml:/etc/open5gs/custom/smf.yaml:ro
+    depends_on: [nrf, pcf, upf]
+
+  upf:
+    <<: *open5gs
+    container_name: upf
+    command: ["open5gs-upfd", "-c", "/etc/open5gs/custom/upf.yaml"]
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    volumes:
+      - ./config/upf.yaml:/etc/open5gs/custom/upf.yaml:ro
+    depends_on: [nrf]
 
 volumes:
   mongo_data:
