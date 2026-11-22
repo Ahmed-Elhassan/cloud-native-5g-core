@@ -1,0 +1,25 @@
+logger:
+  level: info
+sbi:
+  server:
+    no_tls: true
+  client:
+    no_tls: true
+smf:
+  sbi:
+    - dev: eth0
+      port: 7777
+  pfcp:
+    - dev: eth0
+  gtpu:
+    - dev: eth0
+  session:
+    - subnet: 10.45.0.0/16
+      gateway: 10.45.0.1
+  dns:
+    - 8.8.8.8
+  mtu: 1400
+nrf:
+  sbi:
+    - name: nrf
+      port: 7777

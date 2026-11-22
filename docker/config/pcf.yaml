@@ -1,0 +1,16 @@
+logger:
+  level: info
+db_uri: mongodb://mongodb/open5gs
+sbi:
+  server:
+    no_tls: true
+  client:
+    no_tls: true
+pcf:
+  sbi:
+    - dev: eth0
+      port: 7777
+nrf:
+  sbi:
+    - name: nrf
+      port: 7777
